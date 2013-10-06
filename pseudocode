@@ -1,0 +1,152 @@
+Dan McGinnis
+9/25/2013
+CIS 3207
+Lab 2A
+
+shell pseudo code
+
+clear screen
+
+allocate data structures
+	a string to hold the input from the user
+	a struct to hold each individual command
+		4 strings:
+			one to hold the command name with path
+			one to hold the paramters and file names
+			std_input
+			std_output 
+			(these last two will be pre-initialized. 
+				They will only be changed if a '<' or '>' is encountered.)
+	a linked list to hold the structs
+		each node will be one "full" command
+		if no pipe was encountered the second node will be NULL
+	a flag to indicate if a task is to be backgrounded
+	an array of a fixed size (maybe 50?) to function as a history
+	
+
+run in loop until shell process is terminated
+
+print prompt (probably '>\n')
+
+
+while there is user input:
+	read user input into the specified string.
+	
+call parser()
+
+if linked list not = NULL
+	call spawn()
+	
+deallocate and reallocate data structures.
+
+exit(0) on CTRL-C
+
+
+
+
+parser function:
+	takes argv from input and linked list as input
+	returns a modified linked list
+	i believe the recursive nature of this function should allow it to deal with
+	an arbitrary number of pipes.
+	
+	if argv is empty and linked list is empty
+		return
+	if string is of format "hist X" 
+		set linked list with the Xth spot of the history array populating the struct in the first node
+		return
+	if string is of format "help" 
+		call help function
+		return
+	if string is of format "cd X" call c function chdir() with correctly formatted parameter.
+		return
+	while not the end of the input string
+		read input string
+		ignore leading whitespace
+		treat first block of characters until whitespace as the program name.
+		pass first "word" encountered to search path() 
+		(if error, return -1), concatenate returned path with program name, 
+		and store in first entry in struct of current linked list node
+		
+		continue reading
+			ignore leading whitespace if present
+		while next character is not background symbol or pipe or end of line
+			read input string into second entry in the struct
+		if next char == end of line
+			set next node to null 
+			return
+		if next char == background character('&')
+			(assume end of input line; backgrounding a task before pipes adds serious complications)
+			set next node to null 
+			set background flag
+			return
+		if next char ==  '<' of '>' 
+			(assume format of: command then input/output)
+			check that next "word" exists as a file(can be either be absolute or in pwd) 
+			if not found return error -1
+			else
+			set struct's std_input and/or std_output appropriately.
+		if pipe character
+			call parser function with remaining input string and linked list with another node added.
+			return
+return
+
+
+search path function:
+	accepts command name as input
+	returns an absolute path as a string
+	walk path (assume directories are delineated by :)
+	search each directory in path starting on left
+	return the first directory where the file is found
+	if not found return error (-1 perhaps)
+	
+	
+	
+spawn function:
+	will accept the background flag and the Linked list as input and the history array
+	returns a positive integer for success and -1 for failure
+	before fork is called, pass parameters into first unused history array slot.
+	
+	adjust stdin and stdout accordingly based on current node
+	this will require opening files with the proper read and write permissions.
+	use a call similar to:
+		int	newstdout	=	open(outputFileName.c_str(),O_WRONLY|O_CREAT,S_IRWXU|S_IRWXG|S_IRWXO);
+	(excvp will be passed the first two entries of the struct pointed to by the current node)
+	
+	while the next node is NOT NULL (because of pipes being used)
+	Have the parent	create a pipe.
+	pid = fork()
+	Have the parent redirect stdout	to the write portion of the pipe.
+	Have the parent execute the	first command with excecvp().
+	dup2()
+	Have the child redirect stdin to the read portion of the pipe.
+	Have the child execute the second command with execvp().
+	wait()
+	if the next node of the linked list is NULL (we are at the last command)
+		pid = fork()
+		if the background flag is set:
+			do not wait() 
+		otherwise
+			wait()
+	return
+	
+help function:
+	ensure std_out is set properly (terminal)
+	print out a useful message about the usage and limitations of the shell
+	return
+
+
+
+The spec does not call for the reaping of child processes. I plan on implementing 
+this if the need arises and/or time permits. I would most likely use something
+similar to the ideas shown in "Computer Systems A Programmer's Perspective"
+by Bryant & O'Hallaron.
+
+I intend to handle errors by returning a -1 whenever a problem is encountered.
+Each function call will check for a return value and report back "up the chain" of 
+calls. If the checking results in unwieldy code, I will define a few wrapper functions
+to handle the error checking; in the effort to keep the code readable.
+
+
+
+
