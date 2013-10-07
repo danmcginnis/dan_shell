@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     int run = 1;
     char *in = NULL;
-    pid_t pid;
+    
 
     Clear_screen();
 
@@ -18,18 +18,22 @@ int main(int argc, char *argv[])
         in = fgets(input, MAX_INPUT-1, stdin);
         if (in != NULL)
         {
-        	printf("%s", input);
-
         	if ((strcmp(input, "exit\n") == 0))
         	{
             	run = 0;
+            	return 0;
             	break;
         	}
 
         	Parse(input, &command);
 
-			printf("Command name = %s\n", command.name);
+			printf("Command name = %s\n", command.argv[0]);
 			printf("Argc %d\n", command.argc);
+			printf("1st argv %s\n", command.argv[1]);
+			
+			//Process(&command);
+			Execvp(&command);
+			
     	}
     	}
 return 0;
@@ -42,7 +46,7 @@ return 0;
         if (pid == 0) {
         //	sscanf(temp, "%s" , test.command_name);
          //   printf("%s\n", test.command_name);
-          //  execvp(test.command_name, *test.params);
+          //  
         	exit(0);
         	}
 
