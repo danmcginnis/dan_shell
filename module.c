@@ -1,8 +1,25 @@
+//////////////////////////////////////////////////////////
+//Dan McGinnis
+//mcginnis.dan@gmail.com
+//CIS 3207 Fall 2013
+//Lab 2 October 9, 2013
+//"Bash" style shell
+//
+////////////////////////////////////////////////////////////
+
+
+
+
+
 #include "dshell.h"
 
 
-
-//Page 718 of computer systems
+//Copied from page 718 of "Computer Systems: A Programmer's Perspective" by
+//	Bryant & O'Hallaron
+//	
+//	This function wraps error handling to reduce code clutter.
+//
+//
 void unix_error(char *msg) 
 {
     fprintf(stderr, "%s: %s\n", msg, strerror(errno));
@@ -10,6 +27,12 @@ void unix_error(char *msg)
 }
 
 
+//Copied from page 718 of "Computer Systems: A Programmer's Perspective" by
+//	Bryant & O'Hallaron
+//	
+//	This function wraps error handling to reduce code clutter.
+//
+//
 pid_t Fork(void)
 {
     pid_t pid;
@@ -21,23 +44,49 @@ pid_t Fork(void)
     }
 }
 
+
+//I found this hex code referenced under several sites while searching for a simple
+//	way to clear the screen.
+//
+//
 void Clear_screen(void)
 {
     printf("\033[2J\033[1;1H");
 }
 
 
+
+//Parse(char *input, Command *command)
+//
+//Input:
+//	An input string of characters
+//	A struct of type Command
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	This function changes the struct passed to it.
+//
+//Assumptions:
+//	Valid characters in input.
+//	Struct has already been allocated.
+//
+//This function tokenizes the input string based on spaces
+//	and places the first word found into the "name" field
+//	of the struct. The entire string is placed in the "argv"
+//	field and is terminated with a NULL character.
+//
+//
 int Parse(char *input, Command *command)
 {
     
-   
     int i = 0;
     char *temp;
     
-    
-	temp = strtok(input," \n");
+	temp = strtok(input," \n"); 
 	command->name = temp;
-	strncat(command->name, "\0", 1);
+	strncat(command->name, "\0", 1); //the first word won't have this ending if there is arguments.
 	
 	while (temp != NULL) {
 		command->argv[i] = temp;
@@ -53,6 +102,30 @@ int Parse(char *input, Command *command)
 
 
 
+//Exec_file_in(Command *command, int position)
+//
+//Input:
+//	A struct of type Command
+//	An integer indicating the position of the file name in the argv field.
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	Nonthing
+//
+//Assumptions:
+//	A positive integer in input.
+//	Struct has already been allocated.
+//
+//This function attempts to open the file listed and pass its content into 
+//	the command instead of accepting from the standard input.
+//
+//	See detailed explanation of execvp in Exec() function.
+//
+// !!!!!Currently not functional!!!!!
+//
+//
 int Exec_file_in(Command *command, int position)
 {
 	int pipefd[2];
@@ -62,7 +135,6 @@ int Exec_file_in(Command *command, int position)
 	{
 		exit(1);
 	}
-	
 	if (pid == 0)
 	{
 		close(pipefd[0]);
@@ -93,6 +165,30 @@ int Exec_file_in(Command *command, int position)
 
 
 
+
+//Exec_file_out(Command *command, int position)
+//
+//Input:
+//	A struct of type Command
+//	An integer indicating the position of the file name in the argv field.
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	Nothing
+//
+//Assumptions:
+//	A positive integer in input.
+//	Struct has already been allocated.
+//
+//This function attempts to open the file listed and write the output to it instead
+//	of the standard out.
+//
+// 
+//	See detailed explanation of execvp in Exec() function.
+//
+//
 int Exec_file_out(Command *command, int position)
 {
 	FILE *fp;
@@ -122,69 +218,105 @@ int Exec_file_out(Command *command, int position)
 }
 
 
+
+//Exec_pipe(Command *command, int position)
+//
+//Input:
+//	A struct of type Command
+//	An integer indicating the position of the pipe in the argv field.
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	Nothing
+//
+//Assumptions:
+//	A positive integer in input.
+//	Struct has already been allocated.
+//
+//This function attempts to open a pipe and use it to pass the output of program 1
+//	into the input of program 2.
+//	See detailed explanation of execvp in Exec() function.
+//
+// !!!!!Currently not functional!!!!!
+//
+//
 int Exec_pipe(Command *command, int position)
 {
 	
-	char *name_1;
 	char *name_2;
-	char *argv1[1024];
 	char *argv2[1024];
 	int i = 0;
-	int j = position;
-	int k = 0;
-	int pfd[2];
+	int j = position+1;
+	int pipefd[2];
+	pid_t pid_1;
+    pid_t pid_2;
 	
-	for (i; i < position; i++)
-	{
-		argv1[i] = command->argv[i];
-	}
-	name_1 = strdup(command->argv[1]);
-	argv1[position] = NULL;
+	command->argv[position] = NULL;
 	
-	for (j; j < command->argc; j++)
+	for (j; j < command->argc+1; j++)
 	{
-		argv2[k] = command->argv[j];
-		k++;
+		argv2[i] = command->argv[j];
+		i++;
 	}
-	name_2 = strdup(command->argv[position]);
+	name_2 = strdup(command->argv[position+1]);
 	argv2[command->argc] = NULL;
 	
-	if(pipe(pfd) < 0) 
+	if(pipe(pipefd) < 0) 
 	{
-		perror("Error on creating pipes!\n");
-		exit(EXIT_FAILURE);
+		exit(1);
     }
     
-    pid_t pid;
-	pid = Fork(); // first command
-	if (pid == 0)
+	pid_1 = Fork(); // open fork for second command
+	if (pid_1 == 0)
 	{
-		if (pid == 0)
+		pid_2 = Fork(); // open fork for first command
+		if (pid_2 == 0)
 		{
 			wait(NULL);
 		}
 		else
 		{
-			close(0); 
-        	dup(pfd[0]);
-        	close(pfd[1]);
-        	execvp(name_2, argv2);
+			close(pipefd[1]); 
+        	dup2(pipefd[0], 0);
+        	close(pipefd[0]);
+        	execvp(command->name, command->argv);
         }
-    }
-    else
-    {
-    	close(1); 
-        dup(pfd[1]);
- 	    close(pfd[0]);
+    
+    	close(pipefd[0]); 
+        dup2(pipefd[1], 1);
+ 	    close(pipefd[1]);
         execvp(name_2, argv2);
     }
-    
-	
-	
-	
+		
 	return 0;
 }
 
+
+
+
+//Exec(Command *command)
+//
+//Input:
+//	A struct of type Command
+//	
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	Nothing
+//
+//Assumptions:
+//	Struct has already been allocated.
+//
+//This function is the default call when no re-direct or pipe commands were found in the
+// input. This function forks and then calls the execvp function with the arguments in the
+//	the struct file. Because execvp searches the path, no path searching functionality
+//	was included with the calls to execute another process.
+//
+//
 int Exec(Command *command)
 {
 	pid_t pid;
@@ -201,6 +333,59 @@ int Exec(Command *command)
 	return 0;
 }
 
+
+//Exec_bg(Command *command)
+//
+//Input:
+//	A struct of type Command
+//	
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	Nothing
+//
+//Assumptions:
+//	Struct has already been allocated.
+//
+//This function is the same as Exec() but does not wait for the process, forcing it to 
+//	run in the background.
+//
+//
+int Exec_bg(Command *command)
+{
+	pid_t pid;
+	pid = Fork();
+	if (pid == 0)
+	{
+		execvp(command->name, command->argv);
+	}
+	
+	return 0;
+}
+
+
+
+//Process(Command *command)
+//
+//Input:
+//	A struct of type Command
+//	
+//
+//Returns:
+//	A 0 to indicate successful operation
+//
+//Modifies:
+//	Nothing
+//
+//Assumptions:
+//	Struct has already been allocated.
+//
+//This function searches the argv field to look for a modifier like < > | or &
+//	and calls the appropriate version of Exec().
+//
+//
 int Process(Command *command)
 {
 	int i = 0;
@@ -216,30 +401,24 @@ int Process(Command *command)
     	
     	if (strcmp(command->argv[i], "<") == 0)
 		{
-    		printf("Argv[i+1] %s\n", command->argv[i+1]);
-    		fflush(stdout);
-    		pid_t pid;
-    		pid = Fork();
-    		if (pid == 0)
-    		{
-    			Exec_file_in(command, i);
-    		}
-    		wait(&pid);
+    		Exec_file_in(command, i);
     		break;
-    	}
-    	
+		}
+    		
     	if (strcmp(command->argv[i], "|") == 0)
     	{
     		Exec_pipe(command, i);
     		break;
     	}
+    	
+    	if (strcmp(command->argv[i], "&") == 0)
+    	{
+    		Exec_bg(command);
+    		break;
+    	}
     }
+    	//no modifiers found, call normal exec()
     	
-    	
-    	Exec(command);
-    	
-    
+    	Exec(command);	
     return 0;
 }
-   	
-    	

@@ -1,4 +1,23 @@
+//////////////////////////////////////////////////////////
+//Dan McGinnis
+//mcginnis.dan@gmail.com
+//CIS 3207 Fall 2013
+//Lab 2 October 9, 2013
+//"Bash" style shell
+//
+////////////////////////////////////////////////////////////
+
+
 #include "dshell.h"
+
+
+
+//This function displays the prompt and accepts user input, then passes
+//	that input to the parsing and processing functions for the actual
+//	work of the program.
+//
+//
+
 
 int main(int argc, char *argv[])
 {

@@ -1,3 +1,16 @@
+//////////////////////////////////////////////////////////
+//Dan McGinnis
+//mcginnis.dan@gmail.com
+//CIS 3207 Fall 2013
+//Lab 2 October 9, 2013
+//"Bash" style shell
+//
+////////////////////////////////////////////////////////////
+
+
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,12 +22,8 @@
 #include <sys/stat.h>
 
 #define PROMPT "dan_shell> "
-
 #define MAX_INPUT 4096
-#define MAX_PIPES 4
 
-
-char path[64];
 char input[MAX_INPUT];
 
 typedef struct command {
@@ -37,6 +46,7 @@ int Exec_file_out(Command *command, int position);
 int Exec_file_in(Command *command, int position);
 int Exec_pipe(Command *command, int position);
 int Exec(Command *command);
+int Exec_bg(Command *command);
 
 
 
