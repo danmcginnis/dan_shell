@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 
     while(run)
     {
-    	Command *command = (Command*)malloc( sizeof(command) ) ;
+    	Command *command = (Command*)malloc(sizeof(Command)) ;
     	command->argc = 0;
     	Command *com_ptr = command;
     	
@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
      	}
        	Parse(input, com_ptr);
 		wait(Process(com_ptr));	
+		
 	}
 return 0;
 }
