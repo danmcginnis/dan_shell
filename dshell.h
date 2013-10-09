@@ -13,29 +13,30 @@
 #define MAX_INPUT 4096
 #define MAX_PIPES 4
 
-char input[MAX_INPUT];
-char path[64];
 
-struct command_t {
+char path[64];
+char input[MAX_INPUT];
+
+typedef struct command {
     char *name;
     int argc;
     char *argv[MAX_INPUT];
     
-};
+} Command;
 
 
 
 void unix_error(char *msg);
 pid_t Fork(void);
 void Clear_screen(void);
-int Parse(char *input, struct command_t *command);
-int Process(struct command_t *command);
-int Execvp(struct command_t *command);
+int Parse(char *input, Command *command);
+int Process(Command *command);
+int Execvp(Command *command);
 int Path(char *path);
-int Exec_file_out(struct command_t *command, int position);
-int Exec_file_in(struct command_t *command, int position);
-int Exec_pipe(struct command_t *command, int position);
-int Exec(struct command_t *command);
+int Exec_file_out(Command *command, int position);
+int Exec_file_in(Command *command, int position);
+int Exec_pipe(Command *command, int position);
+int Exec(Command *command);
 
 
 
