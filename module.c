@@ -191,15 +191,15 @@ int Exec_file_in(Command *command, int position)
 //
 int Exec_file_out(Command *command, int position)
 {
-	FILE *fp;
+	int fp;
 	pid_t pid;
-	int temp = dup(1);
 	char *file_name = command->argv[position+1];
+    printf("file name %s\n", file_name);
 	command->argv[position] = NULL;
     //the following command was one of the recommended command strings
     //  to safely open files according to several google searches
 	fp = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRGRP | S_IROTH);
-    if(fp == NULL)    
+    if(fp < 0)    
     {
     	return 1;
     }
@@ -211,8 +211,7 @@ int Exec_file_out(Command *command, int position)
 		wait(NULL);
 		return 0;
 	}
-	dup2(temp, 1);
-	fclose(fp);
+	dup2(fp, 1);
 	wait(NULL);
 	return 0;
 }
