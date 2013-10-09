@@ -1,0 +1,28 @@
+Dan McGinnis
+Lab 2
+October 9, 2013
+CIS 3207
+
+This lab was to create a simple shell. I had hoped to implement something involving a linked list to hold each of the 
+commands and the appropriate arguments to go along with it. I had a lot of issues getting that to work and eventually
+scrapped that plan. I went with a single struct that is allocated and then dellocated for each loop of the command
+prompt printing out.
+
+The user input is intitially stored in a temporary string. From there it is passed, along with a struct, to a parser
+function where it is parsed and stored in the struct which is then passed to another function to look for the redirect
+pipe, or background symbols. From there, one of several different exec() functions is called to deal with the modifier
+found. The source code includes a detailed explanation of each function and what it does.
+
+For testing purposes, I manually and programmatically compared the outputs of bash and my shell for several different
+commands, and over the last couple days, have used my shell for the development work and daily use of my computer
+when I was not met by restrictions in it's abilities. This testing was done on both Apple OS X 10.8 and the LTS
+version of 32bit Ubuntu linux.
+
+Unfortunately, time constrains have prevented me from properly debugging file input and pipes before the deadline. I am 
+confident that the program (despite being simple) is a good starting point and just needs further debugging of the parser
+and calls to open and close the files, but the deadline approached too quickly.
+
+Edit 10/9/2013 :12:00pm
+
+It has just come to my attention that the tar command I used last night mangled the files. This is a second upload of the code
+so that it is in a useable state.

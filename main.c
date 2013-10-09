@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
      	}
        	Parse(input, com_ptr);
 		wait(Process(com_ptr));	
+        //free(command);    //uncomment when testing is complete.
 		
 	}
 return 0;

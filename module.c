@@ -148,7 +148,7 @@ int Exec_file_in(Command *command, int position)
 		{
 			return 1;
 		}
-		while ((temp = fgetc(input)) != EOF)
+		while ((temp = fgetc(fp)) != EOF)
 		{
 			putchar(temp);
 		}
@@ -196,6 +196,8 @@ int Exec_file_out(Command *command, int position)
 	int temp = dup(1);
 	char *file_name = command->argv[position+1];
 	command->argv[position] = NULL;
+    //the following command was one of the recommended command strings
+    //  to safely open files according to several google searches
 	fp = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRGRP | S_IROTH);
     if(fp == NULL)    
     {
@@ -205,14 +207,12 @@ int Exec_file_out(Command *command, int position)
 	if (pid == 0) 
 	{
 		close(fp);
-		close(temp);
 		execvp(command->name, command->argv);
 		wait(NULL);
 		return 0;
 	}
 	dup2(temp, 1);
 	fclose(fp);
-	close(temp);
 	wait(NULL);
 	return 0;
 }
@@ -255,6 +255,9 @@ int Exec_pipe(Command *command, int position)
 	
 	command->argv[position] = NULL;
 	
+    //Quick and dirty way to generate second programs info.
+    // This hack should be replaced with a call to parse to 
+    // populate a second struct.
 	for (j; j < command->argc+1; j++)
 	{
 		argv2[i] = command->argv[j];
@@ -279,17 +282,14 @@ int Exec_pipe(Command *command, int position)
 		else
 		{
 			close(pipefd[1]); 
-        	dup2(pipefd[0], 0);
-        	close(pipefd[0]);
+        	dup2(pipefd[0], STDIN_FILENO);
         	execvp(command->name, command->argv);
         }
     
     	close(pipefd[0]); 
         dup2(pipefd[1], 1);
- 	    close(pipefd[1]);
         execvp(name_2, argv2);
     }
-		
 	return 0;
 }
 

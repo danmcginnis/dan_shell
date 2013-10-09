@@ -40,8 +40,6 @@ pid_t Fork(void);
 void Clear_screen(void);
 int Parse(char *input, Command *command);
 int Process(Command *command);
-int Execvp(Command *command);
-int Path(char *path);
 int Exec_file_out(Command *command, int position);
 int Exec_file_in(Command *command, int position);
 int Exec_pipe(Command *command, int position);
